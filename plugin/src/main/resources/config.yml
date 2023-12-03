@@ -1,6 +1,6 @@
 # Developer: @Xiao-MoMi
 # Wiki: https://mo-mi.gitbook.io/xiaomomi-plugins/
-config-version: '29'
+config-version: '31'
 
 # Debug
 debug: false
@@ -25,6 +25,20 @@ mechanics:
       type: '!world'
       value:
         - blacklist_world
+
+  # Configures global effects. This is useful if you want to give all the players certain effects based on certain conditions
+  global-effects:
+    effect_1:
+      type: conditional
+      conditions:
+        competition:
+          ongoing: true
+          id:
+            - weekend_competition
+      effects:
+        effect_1:
+          type: wait-time-multiplier
+          value: 0.85
 
   # Configures global events for hook/bait/rod/loot
   # which would help you reduce duplicated lines
@@ -133,6 +147,24 @@ mechanics:
     min-wait-time: 100
     max-wait-time: 600
 
+  # Size settings
+  size:
+    # Some effects would increase/decrease size so the option decides whether they could ignore the limit
+    restricted-size-range: true
+
+    ###### WARNING: THIS IS NOT AN IMPLEMENTED FEATURE AND MIGHT BE REMOVED IN THE FUTURE ######
+    # It's only available for developers to test for the moment.
+    # This feature requires much work on preventing dupe, counting price, merging dropped items,
+    # clicks in inventory, hopper transferring and lore updating...
+    # It might be removed if dupes or has bad performance.
+    ## Allow players to stack fish with different sizes
+    #allow-stack: false
+    ## Lore format
+    #lore-format:
+    #  - ''
+    #  - 'Total Size: {0}cm'
+    #############################################################################################
+
   # Competition settings
   competition:
     # Use redis for cross server data synchronization
@@ -163,6 +195,9 @@ other-settings:
   # Save the data from cache to file periodically to minimize the data loss if server crashes
   # -1 to disable
   data-saving-interval: 600
+
+  # Log the consumption of time on data saving
+  log-data-saving: true
 
   # Lock player's data if a player is playing on a server that connected to database
   # If you can ensure low database link latency and fast processing, you can consider disabling this option to improve performance

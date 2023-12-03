@@ -40,7 +40,7 @@ import java.util.Objects;
 public class CFConfig {
 
     // config version
-    public static String configVersion = "29";
+    public static String configVersion = "31";
     // Debug mode
     public static boolean debug;
     // language
@@ -87,6 +87,11 @@ public class CFConfig {
     public static int dataSaveInterval;
     // Lock data on join
     public static boolean lockData;
+    public static boolean logDataSaving;
+
+    public static boolean restrictedSizeRange;
+    public static boolean allowSizeStack;
+    public static List<String> sizeStackLore;
 
     // Legacy color code support
     public static boolean legacyColorSupport;
@@ -114,6 +119,7 @@ public class CFConfig {
                             .setVersioning(new BasicVersioning("config-version"))
                             .addIgnoredRoute(configVersion, "mechanics.mechanic-requirements", '.')
                             .addIgnoredRoute(configVersion, "mechanics.global-events", '.')
+                            .addIgnoredRoute(configVersion, "mechanics.global-effects", '.')
                             .addIgnoredRoute(configVersion, "other-settings.placeholder-register", '.')
                             .build()
             );
@@ -150,6 +156,10 @@ public class CFConfig {
         lavaMinTime = config.getInt("mechanics.lava-fishing.min-wait-time", 100);
         lavaMaxTime = config.getInt("mechanics.lava-fishing.max-wait-time", 600);
 
+        restrictedSizeRange = config.getBoolean("mechanics.size.restricted-size-range", true);
+        allowSizeStack = config.getBoolean("mechanics.size.allow-stack", false);
+        sizeStackLore = config.getStringList("mechanics.size.lore-format").stream().map(it -> "<!i>" + it).toList();
+
         globalShowInFinder = config.getBoolean("mechanics.global-loot-property.show-in-fishfinder", true);
         globalDisableStats = config.getBoolean("mechanics.global-loot-property.disable-stat", false);
         globalDisableGame = config.getBoolean("mechanics.global-loot-property.disable-game", false);
@@ -160,11 +170,11 @@ public class CFConfig {
         serverGroup = ConfigUtils.stringListArgs(config.get("mechanics.competition.server-group","default"));
 
         dataSaveInterval = config.getInt("other-settings.data-saving-interval", 600);
+        logDataSaving = config.getBoolean("other-settings.log-data-saving", true);
         lockData = config.getBoolean("other-settings.lock-data", true);
         legacyColorSupport = config.getBoolean("other-settings.legacy-color-code-support", false);
 
         durabilityLore = config.getStringList("other-settings.custom-durability-format").stream().map(it -> "<!i>" + it).toList();
-
 
         OffsetUtils.loadConfig(config.getConfigurationSection("other-settings.offset-characters"));
     }

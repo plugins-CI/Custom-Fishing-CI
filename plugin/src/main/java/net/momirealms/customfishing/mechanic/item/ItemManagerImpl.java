@@ -709,7 +709,7 @@ public class ItemManagerImpl implements ItemManager, Listener {
                 if (bonus != 0) {
                     placeholders.put("{bonus}", String.format("%.2f", bonus));
                 }
-                float size = Float.parseFloat(placeholders.getOrDefault("{size}", "0").replace(",", "."));
+                float size = Float.parseFloat(placeholders.getOrDefault("{SIZE}", "0"));
                 double price = CustomFishingPlugin.get().getMarketManager().getFishPrice(
                         base,
                         bonus,
@@ -717,6 +717,7 @@ public class ItemManagerImpl implements ItemManager, Listener {
                 );
                 nbtItem.setDouble("Price", price);
                 placeholders.put("{price}", String.format("%.2f", price));
+                placeholders.put("{PRICE}", String.valueOf(price));
             });
             return this;
         }
@@ -726,13 +727,21 @@ public class ItemManagerImpl implements ItemManager, Listener {
             if (size == null) return this;
             editors.put("size", (player, nbtItem, placeholders) -> {
                 NBTCompound cfCompound = nbtItem.getOrCreateCompound("CustomFishing");
-                float random = size.left() + size.left() <= size.right() ? 0 : ThreadLocalRandom.current().nextFloat(size.right() - size.left());
+                float random = size.left() + (size.left() >= size.right() ? 0 : ThreadLocalRandom.current().nextFloat(size.right() - size.left()));
                 float bonus = Float.parseFloat(placeholders.getOrDefault("{size-multiplier}", "1.0"));
                 double fixed = Double.parseDouble(placeholders.getOrDefault("{size-fixed}", "0.0"));
                 random *= bonus;
                 random += fixed;
+                if (CFConfig.restrictedSizeRange) {
+                    if (random > size.right()) {
+                        random = size.right();
+                    } else if (random < size.left()) {
+                        random = size.left();
+                    }
+                }
                 cfCompound.setFloat("size", random);
                 placeholders.put("{size}", String.format("%.2f", random));
+                placeholders.put("{SIZE}", String.valueOf(random));
             });
             return this;
         }
