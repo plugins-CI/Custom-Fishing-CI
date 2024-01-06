@@ -27,7 +27,6 @@ import net.momirealms.customfishing.api.mechanic.action.Action;
 import net.momirealms.customfishing.api.mechanic.competition.FishingCompetition;
 import net.momirealms.customfishing.api.mechanic.condition.Condition;
 import net.momirealms.customfishing.api.mechanic.loot.Loot;
-import net.momirealms.customfishing.api.mechanic.loot.WeightModifier;
 import net.momirealms.customfishing.api.mechanic.requirement.Requirement;
 import net.momirealms.customfishing.api.mechanic.requirement.RequirementExpansion;
 import net.momirealms.customfishing.api.mechanic.requirement.RequirementFactory;
@@ -213,6 +212,9 @@ public class RequirementManagerImpl implements RequirementManager {
         this.registerListRequirement();
         this.registerEnvironmentRequirement();
         this.registerPotionEffectRequirement();
+        this.registerSizeRequirement();
+        this.registerHasStatsRequirement();
+        this.registerLootTypeRequirement();
     }
 
     public HashMap<String, Double> getLootWithWeight(Condition condition) {
@@ -454,7 +456,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at || requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -477,7 +479,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at && requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -648,7 +650,8 @@ public class RequirementManagerImpl implements RequirementManager {
                     return false;
                 };
             } else {
-                return null;
+                LogUtils.warn("Wrong value format found at cooldown requirement.");
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -720,7 +723,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at >= requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement(">", (args, actions, advanced) -> {
@@ -736,7 +739,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at > requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -753,7 +756,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at regex requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -772,7 +775,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !startsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("!=", (args, actions, advanced) -> {
@@ -788,7 +791,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !startsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -808,7 +811,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at < requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("<=", (args, actions, advanced) -> {
@@ -824,7 +827,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at <= requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -843,7 +846,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at startsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("!startsWith", (args, actions, advanced) -> {
@@ -859,7 +862,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !startsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -878,7 +881,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at endsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("!endsWith", (args, actions, advanced) -> {
@@ -894,7 +897,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !endsWith requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -913,7 +916,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at contains requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("!contains", (args, actions, advanced) -> {
@@ -929,7 +932,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !contains requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -948,7 +951,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at equals requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
         registerRequirement("!equals", (args, actions, advanced) -> {
@@ -964,7 +967,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at !equals requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -1007,7 +1010,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at item-in-hand requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
@@ -1027,6 +1030,72 @@ public class RequirementManagerImpl implements RequirementManager {
             return condition -> {
                 String id = condition.getArg("{bait}");
                 if (!baits.contains(id)) return true;
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+        registerRequirement("has-bait", (args, actions, advanced) -> {
+            boolean has = (boolean) args;
+            return condition -> {
+                String id = condition.getArg("{bait}");
+                if (id != null && has) return true;
+                if (id == null && !has) return true;
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+    }
+
+    private void registerSizeRequirement() {
+        registerRequirement("has-size", (args, actions, advanced) -> {
+            boolean has = (boolean) args;
+            return condition -> {
+                String size = condition.getArg("{SIZE}");
+                if (size != null && has) return true;
+                if (size == null && !has) return true;
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+    }
+
+    private void registerHasStatsRequirement() {
+        registerRequirement("has-stats", (args, actions, advanced) -> {
+            boolean has = (boolean) args;
+            return condition -> {
+                String loot = condition.getArg("{loot}");
+                Loot lootInstance = plugin.getLootManager().getLoot(loot);
+                if (lootInstance != null) {
+                    if (!lootInstance.disableStats() && has) return true;
+                    if (lootInstance.disableStats() && !has) return true;
+                }
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+    }
+
+    private void registerLootTypeRequirement() {
+        registerRequirement("loot-type", (args, actions, advanced) -> {
+            List<String> types = ConfigUtils.stringListArgs(args);
+            return condition -> {
+                String loot = condition.getArg("{loot}");
+                Loot lootInstance = plugin.getLootManager().getLoot(loot);
+                if (lootInstance != null) {
+                    if (types.contains(lootInstance.getType().name().toLowerCase(Locale.ENGLISH))) return true;
+                }
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+        registerRequirement("!loot-type", (args, actions, advanced) -> {
+            List<String> types = ConfigUtils.stringListArgs(args);
+            return condition -> {
+                String loot = condition.getArg("{loot}");
+                Loot lootInstance = plugin.getLootManager().getLoot(loot);
+                if (lootInstance != null) {
+                    if (!types.contains(lootInstance.getType().name().toLowerCase(Locale.ENGLISH))) return true;
+                }
                 if (advanced) triggerActions(actions, condition);
                 return false;
             };
@@ -1069,6 +1138,16 @@ public class RequirementManagerImpl implements RequirementManager {
             return condition -> {
                 String id = condition.getArg("{hook}");
                 if (!hooks.contains(id)) return true;
+                if (advanced) triggerActions(actions, condition);
+                return false;
+            };
+        });
+        registerRequirement("has-hook", (args, actions, advanced) -> {
+            boolean has = (boolean) args;
+            return condition -> {
+                String id = condition.getArg("{hook}");
+                if (id != null && has) return true;
+                if (id == null && !has) return true;
                 if (advanced) triggerActions(actions, condition);
                 return false;
             };
@@ -1129,7 +1208,7 @@ public class RequirementManagerImpl implements RequirementManager {
                 };
             } else {
                 LogUtils.warn("Wrong value format found at competition requirement.");
-                return null;
+                return EmptyRequirement.instance;
             }
         });
     }
